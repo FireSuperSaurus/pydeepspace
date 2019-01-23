@@ -1,7 +1,7 @@
 #from components.climb import Climb
 from magicbot import StateMachine, state, timed_state
 
-class ClimbAutomation:
+class ClimbAutomation(StateMachine):
 
     #climb: Climb
 
@@ -46,3 +46,7 @@ class ClimbAutomation:
             self.climb2.move(self.climb.MIN_REST_H)
         if self.climb2.at_pos():
             self.done()
+
+    @state(must_finish=True)
+    def finishing_pos(self):
+        self.motor.move()

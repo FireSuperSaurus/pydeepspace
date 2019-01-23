@@ -2,14 +2,11 @@
 
 import magicbot
 import wpilib
-import ctre
 
 class Robot(magicbot.MagicRobot):
     def createObjects(self):
         """Create motors and stuff here."""
-        self.joystick = wpilib.Joystick(0)
-        self.climb_motor = ctre.WPI_TalonSRX(1)
-        
+        pass 
 
     def teleopInit(self):
         """Initialise driver control."""
@@ -17,11 +14,7 @@ class Robot(magicbot.MagicRobot):
 
     def teleopPeriodic(self):
         """Allow the drivers to control the robot."""
-        y = -self.joystick.getY()
-        self.climb_motor.set(ctre.ControlMode.PercentOutput,y/2)
-    
-    def disabledInit(self):
-        self.climb_motor.set(ctre.ControlMode.PercentOutput,0)
+        pass
 
 
 if __name__ == "__main__":

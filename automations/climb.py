@@ -13,6 +13,7 @@ class ClimbAutomation:
     def drive_off(self):
         self.motor.move()
 
+#The robot will do it's thing, so the climb module is not needed until...
 
 #going up lvl 3
     @state(must_finish=True)
@@ -22,6 +23,10 @@ class ClimbAutomation:
         if self.climbs.at_pos():
             self.done()
 
+    @timed_state(must_finish=True, duration=0.5, next_state="climb1_down")
+    def bit_forward(self):
+        self.motor.move()
+
     @state(must_finish=True)
     def climb1_down(self, initial_call):
         if initial_call:
@@ -29,6 +34,10 @@ class ClimbAutomation:
             self.climb1.move(self.climb.MIN_REST_H)
         if self.climb1.at_pos():
             self.done()
+
+    @timed_state(must_finish=True, duration=0.5, next_state="climb2_down")
+    def bit_forward(self):
+        self.motor.move()
 
     @state(must_finish=True)
     def climb2_down(self, initial_call):

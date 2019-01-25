@@ -18,8 +18,8 @@ class Lift:
     # heights in metres
     LIFT_METRES_PER_REV = 0.002
 
-    UP_HEIGHT = 5
-    DOWN_HEIGHT = 5
+    EXTENDED_HEIGHT = 5
+    RETRACTED_HEIGHT = 5
 
     THRESHOLD = 0.01
 
@@ -55,11 +55,11 @@ class Lift:
         self.lift_pid_controller.setD(pid.D)
         self.lift_pid_controller.setFF(pid.F)
 
-    def set_lift_height(self, lift, set_point_metres):
-        if set_point_metres - self.get_lift_height(lift) > 0:
-            self.set_pid(lift, self.up_PID)
+    def set_lift_height(self, set_point_metres):
+        if set_point_metres - self.get_lift_height() > 0:
+            self.set_pid(self.up_PID)
         else:
-            self.set_pid(lift, self.down_PID)
+            self.set_pid(self.down_PID)
 
         self.lift_set_point = (
             set_point_metres / self.LIFT_METRES_PER_REV + self.GROUND_OFFSET
@@ -72,9 +72,15 @@ class Lift:
         pos = self.lift_encoder.getPosition()
         return (pos - self.GROUND_OFFSET) * self.LIFT_METRES_PER_REV
 
+    def extend_lift(self):
+        self.set_lift_height(self.EXTENDED_HEIGHT)
+
+    def retract_lift(self):
+        self.set_lift_height(self.RETRACTED_HEIGHT)
+
     def stop_lift(self):
         self.lift_set_point = None
-        self.lift_motor.lift_motor.stopMotor()
+        self.lift_motor.stopMotor()
 
     def get_lift_status(self):
         lift_pos = self.get_lift_height()

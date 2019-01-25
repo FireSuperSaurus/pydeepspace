@@ -21,15 +21,23 @@ class Lift:
     EXTENDED_HEIGHT = 5
     RETRACTED_HEIGHT = 5
 
-    THRESHOLD = 0.01
+    LIFT_SPEED = 5300  # rpm
+
+    THRESHOLD = 0.001
 
     up_PID = PID(0, 0, 0, 0)
     down_PID = PID(0, 0, 0, 0)
 
+    lift_set_point = None
+
     # Drive Constants
     DRIVE_ENCODER_TYPE = ctre.FeedbackDevice.QuadEncoder
 
+    DRIVE_SPEED = 11200 / 10
+
     drive_PID = PID(0, 0, 0, 0)
+
+    drive_wheels = False
 
     def setup(self):
         self.lift_encoder = self.lift_motor.getEncoder()
@@ -64,9 +72,6 @@ class Lift:
         self.lift_set_point = (
             set_point_metres / self.LIFT_METRES_PER_REV + self.GROUND_OFFSET
         )
-        self.lift_motor.lift_pid_controller.setReference(
-            self.lift_set_point, rev.ControlType.kPosition
-        )
 
     def get_lift_height(self):
         pos = self.lift_encoder.getPosition()
@@ -82,21 +87,39 @@ class Lift:
         self.lift_set_point = None
         self.lift_motor.stopMotor()
 
-    def get_lift_status(self):
+    def get_lift_at_set_pos(self):
         lift_pos = self.get_lift_height()
         return self.is_within_threshold(lift_pos, self.lift_set_point)
+
+    def get_lift_direction(self):
+        if (self.lift_set_point - self.lift_encoder.getPosition()) > 0:
+            return 1
+        else:
+            return -1
 
     def is_within_threshold(self, pos, goal):
         return (goal + self.THRESHOLD) >= pos >= (goal - self.THRESHOLD)
 
     def move_wheels_forward(self):
-        self.drive_motor.set(ctre.ControlMode.PercentOutput, 0.5)
+        self.drive_wheels = True
 
     def stop_wheels(self):
         self.drive_motor.set(ctre.ControlMode.PercentOutput, 0)
+        self.drive_wheels = False
 
     def is_touching_podium(self, lift):
         return all([switch.get() for switch in self.limit_switches])
 
     def execute(self):
-        pass
+        if self.get_lift_at_set_pos():
+            self.stop_lift()
+
+        if self.lift_set_point:
+            self.lift_pid_controller.setReference(
+                self.get_lift_direction() * self.LIFT_SPEED, rev.ControlType.kVelocity
+            )
+
+        if self.drive_wheels:
+            self.drive_motor.set(ctre.ControlMode.Velocity, self.DRIVE_SPEED)
+        else:
+            self.stop_wheels()
